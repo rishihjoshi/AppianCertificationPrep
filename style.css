@@ -578,6 +578,19 @@ details[open] .how-to-use-summary::after {
   border-radius: var(--radius);
   padding: 14px;
   user-select: text;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-correct-answer {
+  color: var(--green);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.result-explanation-text {
+  color: var(--text-2);
 }
 
 /* ── Results Screen ── */
