@@ -118,14 +118,16 @@ function parseCSV(csv) {
 }
 
 function splitCSVRows(csv) {
-  // Split on newlines but respect quoted fields containing newlines
+  // Split on newlines but respect quoted fields containing newlines.
+  // Quotes are preserved in the output so parseCSVRow can handle quoted
+  // fields with commas (e.g. Google Sheets exports "A, B" for multi-answers).
   const rows = [];
   let cur = '', inQuote = false;
   for (let i = 0; i < csv.length; i++) {
     const ch = csv[i];
     if (ch === '"') {
-      if (inQuote && csv[i + 1] === '"') { cur += '"'; i++; } // escaped quote
-      else inQuote = !inQuote;
+      if (inQuote && csv[i + 1] === '"') { cur += '""'; i++; } // escaped quote — preserve both
+      else { inQuote = !inQuote; cur += ch; }                   // toggle and keep the quote
     } else if ((ch === '\n' || ch === '\r') && !inQuote) {
       if (cur.trim()) rows.push(cur);
       cur = '';
