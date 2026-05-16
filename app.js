@@ -5,7 +5,7 @@ const TOTAL_QUESTIONS_PER_SESSION = 60;
 const TOTAL_SCORE_POINTS          = 120;
 const EXAM_TIME_MINUTES           = 60;
 const PASSING_PERCENTAGE          = 73;
-const SHEET_CSV_URL               = 'https://docs.google.com/spreadsheets/d/19yf_hnwbM63Wzfk0E-4N0ODIq0Ahig6Y2sElUpmTiJM/export?format=csv&gid=0';
+const SHEET_CSV_URL               = 'https://docs.google.com/spreadsheets/d/19yf_hnwbM63Wzfk0E-4N0ODIq0Ahig6Y2sElUpmTiJM/edit?usp=sharing';
 
 // Exam category weights (real exam proportions)
 const CATEGORY_WEIGHTS = {
