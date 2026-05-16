@@ -1,5 +1,5 @@
 // ── AppianCertPrep service worker (StrideVault pattern) ──────────────────────
-const CACHE_NAME   = 'appiancertprep-v3';
+const CACHE_NAME   = 'appiancertprep-v4';
 const STATIC_ASSETS = [
   './index.html',
   './style.css',
@@ -34,25 +34,25 @@ self.addEventListener('fetch', e => {
   const { request } = e;
   const url = new URL(request.url);
 
-  // Network-first for Google Sheets CSV (so questions stay fresh)
+  // Network-first for Google Sheets CSV.
+  // Fresh Request with credentials:'omit' prevents Google auth redirects on iOS Safari.
   if (url.hostname === 'docs.google.com') {
     e.respondWith(
-      fetch(request)
+      fetch(new Request(request.url, {
+        method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow', cache: 'no-store',
+      }))
         .then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(request, clone));
-          }
+          // Cache by URL string — request.url is stable; put() failures are silenced for iOS opaque responses.
+          if (res.ok) caches.open(CACHE_NAME).then(c => c.put(request.url, res.clone())).catch(() => {});
           return res;
         })
         .catch(async () => {
-          const cached = await caches.match(request);
+          const cached = await caches.match(request.url).catch(() => null);
           if (cached) return cached;
-          // Return offline message as CSV-shaped response
+          // Header-only CSV → parseCSV yields 0 questions → app shows the retry UI.
           return new Response(
-            'Sr. No.,Category,Question,Option A,Option B,Option C,Option D,Option E,Correct Answer(s),Explanation\n' +
-            '0,Offline,You are offline and no cached questions are available. Please reconnect and reload.,,,,,,,',
-            { headers: { 'Content-Type': 'text/csv' } }
+            'Sr. No.,Category,Question,Option A,Option B,Option C,Option D,Option E,Correct Answer(s),Explanation\n',
+            { status: 200, headers: { 'Content-Type': 'text/csv' } }
           );
         })
     );
@@ -65,8 +65,7 @@ self.addEventListener('fetch', e => {
       if (cached) return cached;
       return fetch(request).then(res => {
         if (res.ok && url.origin === self.location.origin) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(request, clone));
+          caches.open(CACHE_NAME).then(c => c.put(request.url, res.clone())).catch(() => {});
         }
         return res;
       });
