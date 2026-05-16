@@ -34,34 +34,22 @@ self.addEventListener('fetch', e => {
   const { request } = e;
   const url = new URL(request.url);
 
-  // Network-first for Google Sheets CSV (so questions stay fresh).
-  // Use a fresh Request with credentials:'omit' so Google's auth redirect
-  // doesn't loop, and iOS Safari doesn't block it as a CORS credentials issue.
+  // Network-first for Google Sheets CSV.
+  // Fresh Request with credentials:'omit' prevents Google auth redirects on iOS Safari.
   if (url.hostname === 'docs.google.com') {
-    const freshReq = new Request(request.url, {
-      method:      'GET',
-      mode:        'cors',
-      credentials: 'omit',
-      redirect:    'follow',
-      cache:       'no-store',
-    });
     e.respondWith(
-      fetch(freshReq)
+      fetch(new Request(request.url, {
+        method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow', cache: 'no-store',
+      }))
         .then(res => {
-          if (res.ok) {
-            // Cache under the original request URL so match() finds it later.
-            // Silence put() errors (e.g. opaque/redirect response on some iOS builds).
-            caches.open(CACHE_NAME)
-              .then(c => c.put(request.url, res.clone()))
-              .catch(() => {});
-          }
+          // Cache by URL string — request.url is stable; put() failures are silenced for iOS opaque responses.
+          if (res.ok) caches.open(CACHE_NAME).then(c => c.put(request.url, res.clone())).catch(() => {});
           return res;
         })
         .catch(async () => {
           const cached = await caches.match(request.url).catch(() => null);
           if (cached) return cached;
-          // Offline fallback: return header row only so parseCSV yields 0 questions
-          // (the app will show the retry UI rather than a phantom offline question).
+          // Header-only CSV → parseCSV yields 0 questions → app shows the retry UI.
           return new Response(
             'Sr. No.,Category,Question,Option A,Option B,Option C,Option D,Option E,Correct Answer(s),Explanation\n',
             { status: 200, headers: { 'Content-Type': 'text/csv' } }
@@ -77,8 +65,7 @@ self.addEventListener('fetch', e => {
       if (cached) return cached;
       return fetch(request).then(res => {
         if (res.ok && url.origin === self.location.origin) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(request, clone));
+          caches.open(CACHE_NAME).then(c => c.put(request.url, res.clone())).catch(() => {});
         }
         return res;
       });
