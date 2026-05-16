@@ -315,12 +315,6 @@ function clearSession() {
   }
 }
 
-function saveLastResults(results) {
-  try {
-    localStorage.setItem('appianprep_last_results', JSON.stringify(results));
-  } catch (_) {}
-}
-
 // ── Test session initialization ───────────────────────────────────────────────
 function startNewTest() {
   clearSession();
@@ -395,9 +389,11 @@ function renderQuestion() {
   session.answeredCurrent = false;
 
   // Header
-  $('q-progress').textContent = `Question ${idx + 1} of ${TOTAL_QUESTIONS_PER_SESSION}`;
-  const pct = ((idx) / TOTAL_QUESTIONS_PER_SESSION) * 100;
+  $('q-progress').textContent = `Question ${idx + 1} of ${session.questions.length}`;
+  const total = session.questions.length;
+  const pct = (idx / total) * 100;
   $('progress-bar').style.width = `${pct}%`;
+  $('progress-bar-wrap').setAttribute('aria-valuemax', total);
   $('progress-bar-wrap').setAttribute('aria-valuenow', idx);
 
   // Category badge
@@ -504,7 +500,7 @@ function recordAnswer(idx, selected, points, outcome) {
   const { session } = state;
   const q = session.questions[idx];
 
-  if (!points && points !== 0) {
+  if (points === undefined) {
     const result = scoreAnswer(selected, q.answers);
     points  = result.points;
     outcome = result.outcome;
@@ -530,8 +526,8 @@ function showResultPanel(selected, q, points, outcome) {
   // Build explanation with correct answer highlighted
   const correctLetters = q.answers.join(', ');
   $('result-explanation').innerHTML =
-    `<strong style="color:var(--green)">Correct answer${q.answers.length > 1 ? 's' : ''}: ${esc(correctLetters)}</strong>\n` +
-    esc(q.explanation || 'No explanation provided.');
+    `<p class="result-correct-answer">Correct answer${q.answers.length > 1 ? 's' : ''}: ${esc(correctLetters)}</p>` +
+    `<p class="result-explanation-text">${esc(q.explanation || 'No explanation provided.')}</p>`;
 
   $('result-panel').classList.remove('hidden');
   $('btn-next').focus();
@@ -551,7 +547,7 @@ function nextQuestion() {
   if (!session) return;
 
   session.currentIndex++;
-  if (session.currentIndex >= TOTAL_QUESTIONS_PER_SESSION) {
+  if (session.currentIndex >= session.questions.length) {
     finishTest();
   } else {
     renderQuestion();
@@ -594,7 +590,6 @@ function finishTest() {
     timestamp: Date.now(),
   };
 
-  saveLastResults(results);
   clearSession();
 
   renderResults(results);
