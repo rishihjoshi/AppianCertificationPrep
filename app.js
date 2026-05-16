@@ -80,7 +80,6 @@ async function fetchQuestions() {
 // ── CSV parser ───────────────────────────────────────────────────────────────
 function parseCSV(csv) {
   const rows    = splitCSVRows(csv);
-  const header  = rows[0]; // Skip header row
   const records = [];
 
   for (let i = 1; i < rows.length; i++) {
@@ -119,14 +118,16 @@ function parseCSV(csv) {
 }
 
 function splitCSVRows(csv) {
-  // Split on newlines but respect quoted fields containing newlines
+  // Split on newlines but respect quoted fields containing newlines.
+  // Quotes are preserved in the output so parseCSVRow can handle quoted
+  // fields with commas (e.g. Google Sheets exports "A, B" for multi-answers).
   const rows = [];
   let cur = '', inQuote = false;
   for (let i = 0; i < csv.length; i++) {
     const ch = csv[i];
     if (ch === '"') {
-      if (inQuote && csv[i + 1] === '"') { cur += '"'; i++; } // escaped quote
-      else inQuote = !inQuote;
+      if (inQuote && csv[i + 1] === '"') { cur += '""'; i++; } // escaped quote — preserve both
+      else { inQuote = !inQuote; cur += ch; }                   // toggle and keep the quote
     } else if ((ch === '\n' || ch === '\r') && !inQuote) {
       if (cur.trim()) rows.push(cur);
       cur = '';
@@ -413,7 +414,6 @@ function renderQuestion() {
 
   const inputType = q.isMulti ? 'checkbox' : 'radio';
   const groupName = `q_${idx}`;
-  const letterMap  = { A: 0, B: 1, C: 2, D: 3, E: 4 };
 
   for (const [letter, text] of Object.entries(q.options)) {
     if (!text) continue; // Skip empty option E
@@ -429,7 +429,12 @@ function renderQuestion() {
     input.value = letter;
     input.setAttribute('aria-label', `Option ${letter}: ${text}`);
 
-    input.addEventListener('change', () => onOptionChange());
+    input.addEventListener('change', () => {
+      onOptionChange();
+      optionsEl.querySelectorAll('.option-label').forEach(l => {
+        l.classList.toggle('selected', l.querySelector('input').checked);
+      });
+    });
 
     const letterSpan = document.createElement('span');
     letterSpan.className   = 'option-letter';
@@ -441,14 +446,6 @@ function renderQuestion() {
 
     label.append(input, letterSpan, textSpan);
     optionsEl.appendChild(label);
-
-    // Sync selected state on label click
-    input.addEventListener('change', () => {
-      optionsEl.querySelectorAll('.option-label').forEach(l => {
-        const inp = l.querySelector('input');
-        l.classList.toggle('selected', inp.checked);
-      });
-    });
   }
 
   // Reset submit button and result panel
@@ -532,9 +529,8 @@ function showResultPanel(selected, q, points, outcome) {
 
   // Build explanation with correct answer highlighted
   const correctLetters = q.answers.join(', ');
-  const correctTexts   = q.answers.map(l => `${l}. ${q.options[l]}`).join('\n');
   $('result-explanation').innerHTML =
-    `<strong style="color:var(--green)">Correct answer${q.answers.length > 1 ? 's' : ''}: ${correctLetters}</strong>\n` +
+    `<strong style="color:var(--green)">Correct answer${q.answers.length > 1 ? 's' : ''}: ${esc(correctLetters)}</strong>\n` +
     esc(q.explanation || 'No explanation provided.');
 
   $('result-panel').classList.remove('hidden');
