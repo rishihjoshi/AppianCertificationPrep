@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Viewport: NO viewport-fit=cover (StrideVault/MixologyVault proven fix for bottom-gap) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- Security headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://docs.google.com; img-src 'self' data: blob:;">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="no-referrer">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AppianPrep">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!-- Android PWA -->
+  <meta name="application-name" content="AppianPrep">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Appian Associate Developer certification exam preparation — 60 questions, 60 minutes, 73% to pass.">
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <title>Appian Cert Prep</title>
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── Loading Screen ── -->
+    <div id="screen-loading" class="screen active" role="status" aria-live="polite">
+      <div class="loading-content">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="56" height="56" rx="14" fill="#0068B3"/>
+            <path d="M28 10L38 30H18L28 10Z" fill="white" opacity="0.9"/>
+            <rect x="16" y="32" width="24" height="5" rx="2.5" fill="white" opacity="0.6"/>
+            <rect x="20" y="40" width="16" height="4" rx="2" fill="white" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="spinner" aria-hidden="true">
+          <div class="spinner-ring"></div>
+        </div>
+        <p class="loading-text">Loading question bank...</p>
+        <div id="loading-error" class="loading-error hidden">
+          <p id="loading-error-msg" class="error-msg"></p>
+          <button id="btn-retry" class="btn btn-primary" aria-label="Retry loading question bank">
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Start Screen ── -->
+    <div id="screen-start" class="screen hidden">
+      <div class="start-header">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="56" height="56" rx="14" fill="#0068B3"/>
+            <path d="M28 10L38 30H18L28 10Z" fill="white" opacity="0.9"/>
+            <rect x="16" y="32" width="24" height="5" rx="2.5" fill="white" opacity="0.6"/>
+            <rect x="20" y="40" width="16" height="4" rx="2" fill="white" opacity="0.4"/>
+          </svg>
+        </div>
+        <h1 class="app-title">Appian Associate Developer Exam Prep</h1>
+        <p class="app-subtitle">60 Questions · 60 Minutes · 73% to Pass</p>
+        <p id="bank-count" class="bank-count" aria-live="polite"></p>
+      </div>
+
+      <div class="start-body">
+        <div class="exam-meta-grid">
+          <div class="meta-card">
+            <span class="meta-value">60</span>
+            <span class="meta-label">Questions</span>
+          </div>
+          <div class="meta-card">
+            <span class="meta-value">120</span>
+            <span class="meta-label">Points</span>
+          </div>
+          <div class="meta-card">
+            <span class="meta-value">60<small>min</small></span>
+            <span class="meta-label">Time Limit</span>
+          </div>
+          <div class="meta-card">
+            <span class="meta-value">73%</span>
+            <span class="meta-label">To Pass</span>
+          </div>
+        </div>
+
+        <button id="btn-start" class="btn btn-primary btn-lg" aria-label="Start exam practice test">
+          Start Test
+        </button>
+
+        <details class="how-to-use">
+          <summary class="how-to-use-summary" aria-expanded="false">How to Use</summary>
+          <div class="how-to-use-body">
+            <ul>
+              <li><strong>Single-answer questions</strong> show radio buttons — select one option.</li>
+              <li><strong>Multi-answer questions</strong> show checkboxes — select all correct options.</li>
+              <li><strong>Scoring:</strong> 2 points per question. Multi-answer: full credit for all correct; partial credit for correct-only selections; 0 points if any wrong option is selected.</li>
+              <li>After submitting each answer, you'll see an explanation before moving on.</li>
+              <li>The timer counts down from 60:00. When it hits 0, the test auto-submits.</li>
+              <li>You can abandon the test at any time using the button in the header.</li>
+              <li>If you refresh during a test, your progress is restored automatically.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ── Question Screen ── -->
+    <div id="screen-question" class="screen hidden">
+      <header class="question-header" role="banner">
+        <div class="question-header-inner">
+          <span id="q-progress" class="q-progress" aria-live="polite" aria-atomic="true"></span>
+          <div id="timer" class="timer" role="timer" aria-live="off" aria-label="Time remaining"></div>
+          <button id="btn-abandon" class="btn btn-danger-sm" aria-label="Abandon test">
+            Abandon
+          </button>
+        </div>
+        <div class="progress-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="60" aria-valuenow="0" id="progress-bar-wrap">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </header>
+
+      <main id="question-main" class="question-main">
+        <div class="category-badge-wrap">
+          <span id="q-category" class="category-badge"></span>
+        </div>
+        <p id="q-text" class="question-text"></p>
+        <form id="q-form" class="options-form" aria-label="Answer options">
+          <div id="q-options" class="options-list" role="group" aria-labelledby="q-text"></div>
+        </form>
+
+        <div class="question-footer">
+          <button id="btn-submit" class="btn btn-primary" disabled aria-label="Submit answer">
+            Submit Answer
+          </button>
+
+          <div id="result-panel" class="result-panel hidden" role="region" aria-live="polite" aria-label="Answer result">
+            <div id="result-verdict" class="result-verdict"></div>
+            <div id="result-points" class="result-points"></div>
+            <div id="result-explanation" class="result-explanation"></div>
+            <button id="btn-next" class="btn btn-primary" aria-label="Next question">
+              Next Question
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ── Results Screen ── -->
+    <div id="screen-results" class="screen hidden">
+      <div class="results-scroll">
+        <div class="results-header">
+          <h2 class="results-title">Test Complete</h2>
+          <div class="score-circle-wrap">
+            <div id="score-circle" class="score-circle">
+              <span id="score-main" class="score-main"></span>
+              <span class="score-denom">/120</span>
+            </div>
+          </div>
+          <div id="pass-badge" class="pass-badge"></div>
+          <p id="score-pct" class="score-pct"></p>
+          <p id="time-taken" class="time-taken"></p>
+        </div>
+
+        <section class="category-breakdown" aria-label="Category breakdown">
+          <h3 class="section-title">Category Breakdown</h3>
+          <div id="category-table" class="category-table" role="table" aria-label="Score by category"></div>
+        </section>
+
+        <div class="results-actions">
+          <button id="btn-review" class="btn btn-secondary" aria-label="Review all answered questions">
+            Review Answers
+          </button>
+          <button id="btn-new-test-results" class="btn btn-primary" aria-label="Start a new practice test">
+            Start New Test
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Review Screen ── -->
+    <div id="screen-review" class="screen hidden">
+      <header class="review-header" role="banner">
+        <h2 class="review-title">Answer Review</h2>
+        <div class="review-legend" aria-label="Color legend">
+          <span class="legend-dot correct" aria-label="Correct"></span><span>Correct</span>
+          <span class="legend-dot partial" aria-label="Partial"></span><span>Partial</span>
+          <span class="legend-dot incorrect" aria-label="Incorrect"></span><span>Incorrect</span>
+        </div>
+      </header>
+      <main id="review-list" class="review-list" aria-label="Question review list"></main>
+      <div class="review-actions">
+        <button id="btn-back-results" class="btn btn-secondary" aria-label="Back to results">
+          Back to Results
+        </button>
+        <button id="btn-new-test-review" class="btn btn-primary" aria-label="Start a new practice test">
+          Start New Test
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <!-- ── Abandon Confirmation Modal ── -->
+  <div id="modal-abandon" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-abandon-title">
+    <div class="modal">
+      <h3 id="modal-abandon-title" class="modal-title">Abandon Test?</h3>
+      <p class="modal-body">Your progress will be lost and you will return to the start screen.</p>
+      <div class="modal-actions">
+        <button id="btn-abandon-cancel" class="btn btn-secondary" aria-label="Cancel, continue test">Keep Going</button>
+        <button id="btn-abandon-confirm" class="btn btn-danger" aria-label="Confirm abandon test">Abandon Test</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

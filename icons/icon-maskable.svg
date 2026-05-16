@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed background — no rounded corners for Android adaptive icon masking -->
+  <rect width="512" height="512" fill="#0068B3"/>
+  <!-- Content scaled to 80% safe zone (centered within ~205px padding) -->
+  <g transform="translate(76, 96) scale(0.7)">
+    <path d="M256 0L420 308H92L256 0Z" fill="white" opacity="0.92"/>
+    <rect x="8" y="326" width="496" height="50" rx="25" fill="white" opacity="0.6"/>
+    <rect x="56" y="396" width="400" height="38" rx="19" fill="white" opacity="0.35"/>
+  </g>
+</svg>
