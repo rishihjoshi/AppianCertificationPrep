@@ -1,5 +1,5 @@
 // ── AppianCertPrep service worker (StrideVault pattern) ──────────────────────
-const CACHE_NAME   = 'appiancertprep-v4';
+const CACHE_NAME   = 'appiancertprep-v5';
 const STATIC_ASSETS = [
   './index.html',
   './style.css',
@@ -35,21 +35,20 @@ self.addEventListener('fetch', e => {
   const url = new URL(request.url);
 
   // Network-first for Google Sheets CSV.
-  // Fresh Request with credentials:'omit' prevents Google auth redirects on iOS Safari.
+  // Pass request as-is so the browser handles Google's redirect chain natively
+  // and returns proper CSV (rewriting the Request object changes the CORS fingerprint
+  // and causes Google to return its internal data format instead).
   if (url.hostname === 'docs.google.com') {
     e.respondWith(
-      fetch(new Request(request.url, {
-        method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow', cache: 'no-store',
-      }))
+      fetch(request)
         .then(res => {
-          // Cache by URL string — request.url is stable; put() failures are silenced for iOS opaque responses.
           if (res.ok) caches.open(CACHE_NAME).then(c => c.put(request.url, res.clone())).catch(() => {});
           return res;
         })
         .catch(async () => {
           const cached = await caches.match(request.url).catch(() => null);
           if (cached) return cached;
-          // Header-only CSV → parseCSV yields 0 questions → app shows the retry UI.
+          // Header-only CSV → parseCSV yields 0 questions → app shows retry UI.
           return new Response(
             'Sr. No.,Category,Question,Option A,Option B,Option C,Option D,Option E,Correct Answer(s),Explanation\n',
             { status: 200, headers: { 'Content-Type': 'text/csv' } }

@@ -71,7 +71,7 @@ async function loadQuestions() {
 }
 
 async function fetchQuestions() {
-  const res = await fetch(SHEET_CSV_URL, { cache: 'no-store', credentials: 'omit' });
+  const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const csv = await res.text();
   return parseCSV(csv);
