@@ -15,15 +15,15 @@
   "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "icons/AppIcon.png",
+      "sizes": "478x478",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "icons/AppIcon.png",
+      "sizes": "478x478",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {

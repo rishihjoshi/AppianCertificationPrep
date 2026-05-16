@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AppianPrep">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/AppIcon.png">
 
   <!-- Android PWA -->
   <meta name="application-name" content="AppianPrep">
@@ -26,7 +26,7 @@
   <meta name="description" content="Appian Associate Developer certification exam preparation — 60 questions, 60 minutes, 73% to pass.">
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="icon" type="image/png" href="./icons/AppIcon.png">
   <link rel="stylesheet" href="./style.css">
   <title>Appian Cert Prep</title>
 </head>
@@ -36,14 +36,7 @@
     <!-- ── Loading Screen ── -->
     <div id="screen-loading" class="screen active" role="status" aria-live="polite">
       <div class="loading-content">
-        <div class="brand-logo" aria-hidden="true">
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="56" height="56" rx="14" fill="#0068B3"/>
-            <path d="M28 10L38 30H18L28 10Z" fill="white" opacity="0.9"/>
-            <rect x="16" y="32" width="24" height="5" rx="2.5" fill="white" opacity="0.6"/>
-            <rect x="20" y="40" width="16" height="4" rx="2" fill="white" opacity="0.4"/>
-          </svg>
-        </div>
+        <img src="./icons/AppIcon.png" alt="Appian Cert Prep" class="brand-logo-img" width="72" height="72">
         <div class="spinner" aria-hidden="true">
           <div class="spinner-ring"></div>
         </div>
@@ -59,15 +52,12 @@
 
     <!-- ── Start Screen ── -->
     <div id="screen-start" class="screen hidden">
+      <div class="hero-banner" aria-hidden="true">
+        <img src="./icons/AssociateExamHeroImage.png" alt="" class="hero-img" draggable="false">
+        <div class="hero-overlay"></div>
+      </div>
       <div class="start-header">
-        <div class="brand-logo" aria-hidden="true">
-          <svg width="48" height="48" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="56" height="56" rx="14" fill="#0068B3"/>
-            <path d="M28 10L38 30H18L28 10Z" fill="white" opacity="0.9"/>
-            <rect x="16" y="32" width="24" height="5" rx="2.5" fill="white" opacity="0.6"/>
-            <rect x="20" y="40" width="16" height="4" rx="2" fill="white" opacity="0.4"/>
-          </svg>
-        </div>
+        <img src="./icons/AppIcon.png" alt="Appian Cert Prep" class="brand-logo-img">
         <h1 class="app-title">Appian Associate Developer Exam Prep</h1>
         <p class="app-subtitle">60 Questions · 60 Minutes · 73% to Pass</p>
         <p id="bank-count" class="bank-count" aria-live="polite"></p>

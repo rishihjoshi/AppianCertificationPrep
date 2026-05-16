@@ -116,10 +116,14 @@ body {
   text-align: center;
 }
 
-.brand-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* App icon used on loading screen and start screen header */
+.brand-logo-img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  box-shadow: 0 4px 20px rgba(0, 104, 179, 0.35);
+  flex-shrink: 0;
 }
 
 .spinner {
@@ -168,13 +172,48 @@ body {
   padding-bottom: calc(var(--safe-b) + 24px);
 }
 
+/* ── Hero banner (AssociateExamHeroImage.png) ── */
+.hero-banner {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Gradient fade into the dark background so the banner blends seamlessly */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 10, 0)   0%,
+    rgba(10, 10, 10, 0.15) 50%,
+    rgba(10, 10, 10, 0.85) 85%,
+    rgba(10, 10, 10, 1)   100%
+  );
+}
+
 .start-header {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 40px 24px 24px;
+  padding: 20px 24px 24px;
   text-align: center;
+  /* Overlap slightly with the bottom of the hero gradient */
+  margin-top: -32px;
+  position: relative;
+  z-index: 1;
 }
 
 .app-title {
@@ -428,6 +467,7 @@ details[open] .how-to-use-summary::after {
   cursor: pointer;
   transition: border-color var(--transition), background var(--transition);
   user-select: none;
+  flex-shrink: 0;
 }
 
 .option-label:hover {
@@ -666,7 +706,7 @@ details[open] .how-to-use-summary::after {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 14px;
-  role: row;
+  flex-shrink: 0;
 }
 
 .cat-row-name {
@@ -756,6 +796,7 @@ details[open] .how-to-use-summary::after {
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  flex-shrink: 0; /* prevent flex column from squashing cards */
 }
 
 .review-item.correct   { border-color: rgba(74,222,128,0.3);  }

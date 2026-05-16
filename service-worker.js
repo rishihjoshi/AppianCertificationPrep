@@ -1,11 +1,12 @@
 // ── AppianCertPrep service worker (StrideVault pattern) ──────────────────────
-const CACHE_NAME   = 'appiancertprep-v1';
+const CACHE_NAME   = 'appiancertprep-v2';
 const STATIC_ASSETS = [
   './index.html',
   './style.css',
   './app.js',
   './manifest.json',
-  './icons/icon.svg',
+  './icons/AppIcon.png',
+  './icons/AssociateExamHeroImage.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable.svg',
