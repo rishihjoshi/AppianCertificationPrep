@@ -1,5 +1,8 @@
 'use strict';
 
+// ── Constants (mirrored from app.js) ─────────────────────────────────────────
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/19yf_hnwbM63Wzfk0E-4N0ODIq0Ahig6Y2sElUpmTiJM/gviz/tq?tqx=out:csv&gid=0';
+
 // ── Logic under test (extracted from app.js) ──────────────────────────────────
 
 function scoreAnswer(selected, correct) {
@@ -362,6 +365,29 @@ for (const [cat, weight] of Object.entries(CATEGORY_WEIGHTS)) {
   const actual   = catCounts[cat] || 0;
   assertApprox(`category "${cat}" count ≈ ${expected}`, actual, expected, 2);
 }
+
+// ── SHEET_CSV_URL / fetchQuestions header guard ───────────────────────────────
+console.log('\nSHEET_CSV_URL & header guard');
+
+// The URL must be the gviz/tq endpoint, NOT the /edit or /export URL
+assert('URL uses gviz/tq endpoint',      SHEET_CSV_URL.includes('/gviz/tq'), true);
+assert('URL requests CSV output',         SHEET_CSV_URL.includes('tqx=out:csv'), true);
+assert('URL is not the edit URL',         SHEET_CSV_URL.includes('/edit'), false);
+assert('URL is not the export URL',       SHEET_CSV_URL.includes('/export'), false);
+assert('URL targets gid=0 (first sheet)', SHEET_CSV_URL.includes('gid=0'), true);
+
+// Inline the header guard logic for unit testing (mirrors fetchQuestions)
+function isValidCsvHeader(csv) {
+  const firstLine = csv.trimStart().split('\n')[0];
+  return firstLine.includes('Question') || firstLine.includes('Sr. No.');
+}
+assert('valid CSV header accepted',        isValidCsvHeader('Sr. No.,Category,Question,Option A,...\n1,...'), true);
+assert('valid header with "Question" col', isValidCsvHeader('"Question","Answer"\n...'), true);
+assert('edit-URL HTML rejected',           isValidCsvHeader('<!DOCTYPE html><html>'), false);
+assert('TSDTV garbled format rejected',    isValidCsvHeader('TSDTV:%.@.[[NULL,[[45736426...'), false);
+assert('gid/pageUrl format rejected',      isValidCsvHeader('gid: 1788403771\npageUrl: ...'), false);
+assert('empty response rejected',          isValidCsvHeader(''), false);
+assert('header-only CSV accepted',         isValidCsvHeader('Sr. No.,Category,Question,Option A,Option B,Option C,Option D,Option E,Correct Answer(s),Explanation'), true);
 
 // ── Results ───────────────────────────────────────────────────────────────────
 const total = pass + fail;

@@ -1,5 +1,5 @@
 // ── AppianCertPrep service worker (StrideVault pattern) ──────────────────────
-const CACHE_NAME   = 'appiancertprep-v5';
+const CACHE_NAME   = 'appiancertprep-v6';
 const STATIC_ASSETS = [
   './index.html',
   './style.css',
