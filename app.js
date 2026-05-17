@@ -5,7 +5,8 @@ const TOTAL_QUESTIONS_PER_SESSION = 60;
 const TOTAL_SCORE_POINTS          = 120;
 const EXAM_TIME_MINUTES           = 60;
 const PASSING_PERCENTAGE          = 73;
-const SHEET_CSV_URL               = 'https://docs.google.com/spreadsheets/d/19yf_hnwbM63Wzfk0E-4N0ODIq0Ahig6Y2sElUpmTiJM/edit?usp=sharing';
+// gviz/tq?tqx=out:csv works for link-shared sheets without auth cookies (unlike /export?format=csv).
+const SHEET_CSV_URL               = 'https://docs.google.com/spreadsheets/d/19yf_hnwbM63Wzfk0E-4N0ODIq0Ahig6Y2sElUpmTiJM/gviz/tq?tqx=out:csv&gid=0';
 
 // Exam category weights (real exam proportions)
 const CATEGORY_WEIGHTS = {
@@ -74,6 +75,12 @@ async function fetchQuestions() {
   const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const csv = await res.text();
+  // Guard: if the first line isn't our CSV header the sheet URL is wrong or
+  // Google returned its HTML/internal format instead of CSV.
+  const firstLine = csv.trimStart().split('\n')[0];
+  if (!firstLine.includes('Question') && !firstLine.includes('Sr. No.')) {
+    throw new Error('Unexpected data format — check the sheet URL and sharing settings');
+  }
   return parseCSV(csv);
 }
 
