@@ -976,10 +976,23 @@ details[open] .how-to-use-summary::after {
 }
 
 .btn-lg {
-  height: 54px;
+  height: auto;
+  min-height: 54px;
   font-size: 1rem;
   width: 100%;
   border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-block: 10px;
+}
+
+.btn-sub {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 /* ── Modal ── */

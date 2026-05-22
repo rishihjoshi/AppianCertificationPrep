@@ -2,9 +2,10 @@
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TOTAL_QUESTIONS_PER_SESSION = 60;
-const TOTAL_SCORE_POINTS          = 120;
 const EXAM_TIME_MINUTES           = 60;
 const PASSING_PERCENTAGE          = 73;
+const QUICK_PREP_QUESTIONS        = 20;
+const QUICK_PREP_TIME_MINUTES     = 20;
 // gviz/tq?tqx=out:csv works for link-shared sheets without auth cookies (unlike /export?format=csv).
 const SHEET_CSV_URL               = 'https://docs.google.com/spreadsheets/d/19yf_hnwbM63Wzfk0E-4N0ODIq0Ahig6Y2sElUpmTiJM/gviz/tq?tqx=out:csv&gid=0';
 
@@ -172,8 +173,8 @@ function trim(s) {
 }
 
 // ── Question selection (category-proportional) ───────────────────────────────
-function selectQuestions(pool) {
-  const total = TOTAL_QUESTIONS_PER_SESSION;
+function selectQuestions(pool, count = TOTAL_QUESTIONS_PER_SESSION) {
+  const total = count;
 
   // Group by category
   const byCategory = {};
@@ -323,15 +324,19 @@ function clearSession() {
 }
 
 // ── Test session initialization ───────────────────────────────────────────────
-function startNewTest() {
+function startNewTest(mode = 'full') {
   clearSession();
 
-  const questions = selectQuestions(state.allQuestions);
+  const count       = mode === 'quick' ? QUICK_PREP_QUESTIONS    : TOTAL_QUESTIONS_PER_SESSION;
+  const timeMinutes = mode === 'quick' ? QUICK_PREP_TIME_MINUTES : EXAM_TIME_MINUTES;
+  const questions   = selectQuestions(state.allQuestions, count);
   state.session = {
     questions,
     answers:          [],   // { selected: [], points, outcome } per question index
     currentIndex:     0,
-    timerSecondsLeft: EXAM_TIME_MINUTES * 60,
+    timerSecondsLeft: timeMinutes * 60,
+    timeLimitSeconds: timeMinutes * 60,
+    mode,
     startedAt:        Date.now(),
     savedAt:          Date.now(),
     submitted:        false,
@@ -570,10 +575,12 @@ function finishTest() {
 
   session.submitted = true;
 
-  const elapsed     = Math.floor((Date.now() - session.startedAt) / 1000);
-  const totalPoints = session.answers.reduce((sum, a) => sum + (a?.points || 0), 0);
-  const pct         = Math.round((totalPoints / TOTAL_SCORE_POINTS) * 100);
-  const passed      = pct >= PASSING_PERCENTAGE;
+  const maxPoints    = session.questions.length * 2;
+  const timeLimitSec = session.timeLimitSeconds ?? EXAM_TIME_MINUTES * 60;
+  const elapsed      = Math.floor((Date.now() - session.startedAt) / 1000);
+  const totalPoints  = session.answers.reduce((sum, a) => sum + (a?.points || 0), 0);
+  const pct          = Math.round((totalPoints / maxPoints) * 100);
+  const passed       = pct >= PASSING_PERCENTAGE;
 
   // Build category breakdown
   const catStats = {};
@@ -590,7 +597,7 @@ function finishTest() {
   });
 
   const results = {
-    totalPoints, pct, passed, elapsed,
+    totalPoints, maxPoints, timeLimitSec, pct, passed, elapsed,
     catStats,
     questions: session.questions,
     answers:   session.answers,
@@ -605,10 +612,11 @@ function finishTest() {
 
 // ── Results rendering ─────────────────────────────────────────────────────────
 function renderResults(results) {
-  const { totalPoints, pct, passed, elapsed, catStats } = results;
+  const { totalPoints, maxPoints, timeLimitSec, pct, passed, elapsed, catStats } = results;
 
-  $('score-main').textContent = totalPoints;
-  $('score-pct').textContent  = `${pct}%`;
+  $('score-main').textContent  = totalPoints;
+  $('score-denom').textContent = `/${maxPoints}`;
+  $('score-pct').textContent   = `${pct}%`;
 
   const badge = $('pass-badge');
   badge.textContent = passed ? '✅ PASS' : '❌ FAIL';
@@ -616,13 +624,13 @@ function renderResults(results) {
 
   // Animate score circle
   const circle = $('score-circle');
-  const deg    = (totalPoints / TOTAL_SCORE_POINTS) * 360;
+  const deg    = (totalPoints / maxPoints) * 360;
   const color  = passed ? 'var(--green)' : (pct >= 50 ? 'var(--yellow)' : 'var(--red)');
   circle.style.background = `conic-gradient(${color} ${deg}deg, var(--border) ${deg}deg)`;
   circle.style.boxShadow  = `0 0 32px ${passed ? 'var(--green-dim)' : 'var(--red-dim)'}`;
 
   // Time taken
-  if (elapsed < EXAM_TIME_MINUTES * 60) {
+  if (elapsed < timeLimitSec) {
     const m = Math.floor(elapsed / 60);
     const s = elapsed % 60;
     $('time-taken').textContent = `Completed in ${m}m ${s}s`;
@@ -717,7 +725,8 @@ function showScreen(name) {
 // ── Event wiring ──────────────────────────────────────────────────────────────
 function wireStaticHandlers() {
   // Start test
-  $('btn-start').addEventListener('click', () => startNewTest());
+  $('btn-start').addEventListener('click',       () => startNewTest('full'));
+  $('btn-start-quick').addEventListener('click', () => startNewTest('quick'));
 
   // Retry on load error
   $('btn-retry').addEventListener('click', () => loadQuestions());
