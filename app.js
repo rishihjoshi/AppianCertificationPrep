@@ -725,8 +725,8 @@ function showScreen(name) {
 // ── Event wiring ──────────────────────────────────────────────────────────────
 function wireStaticHandlers() {
   // Start test
-  $('btn-start').addEventListener('click',       () => startNewTest('full'));
-  $('btn-start-quick').addEventListener('click', () => startNewTest('quick'));
+  $('btn-start').addEventListener('click', () => startNewTest('full'));
+  $('btn-start-quick')?.addEventListener('click', () => startNewTest('quick'));
 
   // Retry on load error
   $('btn-retry').addEventListener('click', () => loadQuestions());
